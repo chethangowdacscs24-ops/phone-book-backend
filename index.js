@@ -2,7 +2,7 @@
 const express = require("express");
 const app = express();
 app.use(express.json());
-app.use(express.static('dist'))
+app.use(express.static("dist"));
 let persons = [
   {
     id: "1",
@@ -31,7 +31,7 @@ app.get("/", (req, res) => {
 app.get("/api/persons", (req, res) => {
   res.json(persons);
 });
-app.get("/api/info", (req, res) => {
+app.get("/info", (req, res) => {
   const now = new Date();
   res.send(
     `The PHONEBOOK has info of ${persons.length} people<br/>${now.toString()}`,
@@ -41,20 +41,33 @@ app.get("/api/persons/:id", (req, res) => {
   const pid = req.params.id;
   const p = persons.find((n) => n.id == pid);
   if (!p) {
-    return res.status(400).json({ error: "not found that " });
+    return res.status(404).json({ error: "not found that " });
   }
   res.json(p);
+});
+app.put("/api/persons/:id", (req, res) => {
+  const pid = req.params.id;
+  const body = req.body;
+
+  const person = persons.find((p) => p.id === pid);
+  if (!person) {
+    return res.status(404).json({ error: "person not found" });
+  }
+
+  const updatedPerson = { ...person, number: body.number };
+  persons = persons.map((p) => (p.id === pid ? updatedPerson : p));
+  res.json(updatedPerson);
 });
 app.delete("/api/persons/:id", (req, res) => {
   const pid = req.params.id;
   const p = persons.find((n) => n.id == pid);
   if (!p) {
     console.log("not found that id to delete");
-    return res.status(400).json({ error: "not found" });
+    return res.status(404).json({ error: "not found" });
   }
-  res.status(200).end();
-  console.log(`phonebook of id ${pid} deleted successfully`);
   persons = persons.filter((n) => n.id !== pid);
+console.log(`phonebook of id ${pid} deleted successfully`);
+res.status(204).end();
 });
 const generateId = () => {
   return Math.floor(Math.random() * 10000000).toString();
