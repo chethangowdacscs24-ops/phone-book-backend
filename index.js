@@ -1,95 +1,104 @@
 // console.log("hello backend");
+require("dotenv").config();
 const express = require("express");
+const Person = require("./modules/person");
 const app = express();
 app.use(express.json());
 app.use(express.static("dist"));
-let persons = [
-  {
-    id: "1",
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: "2",
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-  },
-  {
-    id: "3",
-    name: "Dan Abramov",
-    number: "12-43-234345",
-  },
-  {
-    id: "4",
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-  },
-];
 app.get("/", (req, res) => {
   res.end("hello world");
 });
-app.get("/api/persons", (req, res) => {
-  res.json(persons);
+app.get("/api/persons", async (request, response) => {
+  try {
+    const result = await Person.find({});
+    response.json(result);
+  } catch (err) {
+    response.status(500).json({ error: err.message });
+  }
 });
-app.get("/info", (req, res) => {
+app.get("/info", async (request, response) => {
   const now = new Date();
-  res.send(
-    `The PHONEBOOK has info of ${persons.length} people<br/>${now.toString()}`,
-  );
+  const l = await Person.countDocuments({});
+  response.send(`The PHONEBOOK has info of ${l} people<br/>${now.toString()}`);
 });
-app.get("/api/persons/:id", (req, res) => {
-  const pid = req.params.id;
-  const p = persons.find((n) => n.id == pid);
-  if (!p) {
-    return res.status(404).json({ error: "not found that " });
+app.get("/api/persons/:id", async (request, response) => {
+  try {
+    const person = await Person.findById(request.params.id);
+    if (person) {
+      response.json(person);
+    } else {
+      response.status(404).json({ error: "Person not found" });
+    }
+  } catch (err) {
+    response.status(400).json({ error: err.message });
   }
-  res.json(p);
 });
-app.put("/api/persons/:id", (req, res) => {
-  const pid = req.params.id;
-  const body = req.body;
+app.put("/api/persons/:id", async (request, response) => {
+  const body = request.body;
+  try {
+    const updatedContact = await Person.findByIdAndUpdate(
+      request.params.id,
+      {
+        name: body.name,
+        number: body.number,
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
 
-  const person = persons.find((p) => p.id === pid);
-  if (!person) {
-    return res.status(404).json({ error: "person not found" });
+    if (!updatedContact) {
+      return response.status(404).json({ error: "Person not found" });
+    }
+
+    response.json(updatedContact);
+  } catch (error) {
+    response.status(400).json({ error: error.message });
   }
-
-  const updatedPerson = { ...person, number: body.number };
-  persons = persons.map((p) => (p.id === pid ? updatedPerson : p));
-  res.json(updatedPerson);
 });
-app.delete("/api/persons/:id", (req, res) => {
-  const pid = req.params.id;
-  const p = persons.find((n) => n.id == pid);
-  if (!p) {
-    console.log("not found that id to delete");
-    return res.status(404).json({ error: "not found" });
-  }
-  persons = persons.filter((n) => n.id !== pid);
-console.log(`phonebook of id ${pid} deleted successfully`);
-res.status(204).end();
-});
-const generateId = () => {
-  return Math.floor(Math.random() * 10000000).toString();
-};
+app.post("/api/persons", (request, response) => {
+  const body = request.body;
 
-app.post("/api/persons", (req, res) => {
-  const body = req.body;
-
-  if (!body || !body.name || !body.number) {
-    return res.status(400).json({ error: "name and number are required" });
+  if (!body.name) {
+    return response.status(400).json({
+      error: "name is missing",
+    });
   }
 
-  const person = {
-    id: generateId(),
+  if (!body.number) {
+    return response.status(400).json({
+      error: "number is missing",
+    });
+  }
+  const savedContact = new Person({
     name: body.name,
     number: body.number,
-  };
-
-  persons = persons.concat(person);
-  res.status(201).json(person);
+  });
+  savedContact
+    .save()
+    .then((result) => {
+      response.json(result);
+    })
+    .catch((err) => {
+      response.status(404).json({ error: err.message });
+    });
 });
+app.delete("/api/persons/:id", (request, response) => {
+  Person.findByIdAndDelete(request.params.id)
+    .then((result) => {
+      if (result) {
+        response.status(204).end();
+      } else {
+        response.status(404).json({ error: "not found" });
+      }
+    })
+    .catch((err) => {
+      response.status(400).json({ error: err.message });
+    });
+});
+
 const port = process.env.PORT || 3001;
-app.listen(port, (req, res) => {
+app.listen(port, () => {
   console.log(`server running on port ${port}`);
 });
