@@ -30,7 +30,8 @@ app.get("/api/persons/:id", async (request, response) => {
       response.status(404).json({ error: "Person not found" });
     }
   } catch (err) {
-    response.status(400).json({ error: err.message });
+    console.log(err.message)
+    response.status(400).json({ error: "invalid id" });
   }
 });
 app.put("/api/persons/:id", async (request, response) => {
@@ -54,6 +55,7 @@ app.put("/api/persons/:id", async (request, response) => {
 
     response.json(updatedContact);
   } catch (error) {
+    console.log(err.message)
     response.status(400).json({ error: error.message });
   }
 });
@@ -81,7 +83,7 @@ app.post("/api/persons", (request, response) => {
       response.json(result);
     })
     .catch((err) => {
-      response.status(404).json({ error: err.message });
+      response.status(500).json({ error: err.message });
     });
 });
 app.delete("/api/persons/:id", (request, response) => {
