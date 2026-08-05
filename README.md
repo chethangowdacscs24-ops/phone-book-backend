@@ -1,43 +1,66 @@
 # Phonebook Backend
 
-A simple RESTful backend built with Node.js and Express for storing and managing phonebook contacts. Built as part of the Full Stack Open course, Part 3.
+Express backend for the phonebook application. This service stores contacts in MongoDB and supports CRUD operations for phonebook entries.
 
-🔗 **Live app:** https://phone-book-backend-y87m.onrender.com/
+## Requirements
 
-## Features
+- Node.js 18+
+- MongoDB connection string
+- `backend/.env` file containing `MONGODB_URI`
 
-- View all phonebook contacts
-- Add a new contact
-- Delete a contact
-- Update an existing contact's number
-- View phonebook info page
+## Setup
 
-## API Endpoints
-
-| Method | Endpoint            | Description                     |
-|--------|----------------------|----------------------------------|
-| GET    | `/api/persons`       | Get all contacts                |
-| GET    | `/api/persons/:id`   | Get a single contact by id      |
-| POST   | `/api/persons`       | Add a new contact               |
-| PUT    | `/api/persons/:id`   | Update a contact's number       |
-| DELETE | `/api/persons/:id`   | Delete a contact                |
-| GET    | `/info`              | Shows number of entries + time  |
-
-## Tech Stack
-
-- Node.js
-- Express
-- React (frontend, served as static build)
-
-## Running Locally
+Install dependencies:
 
 ```bash
+cd backend
 npm install
+```
+
+Create `backend/.env`:
+
+```env
+MONGODB_URI=<your mongodb connection string>
+PORT=3001
+```
+
+## Run locally
+
+Start the server:
+
+```bash
 npm start
 ```
 
-Server runs on `http://localhost:3001` by default.
+The backend listens on `http://localhost:3001` by default.
 
-## Deployment
+## Build and serve the frontend from backend
 
-Deployed on [Render](https://render.com). Frontend is built with `npm run build` and served statically by Express from the `dist` folder, so both frontend and backend run on the same origin in production.
+To build the React app and copy it into `backend/dist`:
+
+```bash
+npm run build:ui
+```
+
+Then run:
+
+```bash
+npm start
+```
+
+## API Endpoints
+
+| Method | Endpoint           | Description                    |
+| ------ | ------------------ | ------------------------------ |
+| GET    | `/api/persons`     | Get all contacts               |
+| GET    | `/api/persons/:id` | Get a single contact by id     |
+| POST   | `/api/persons`     | Add a new contact              |
+| PUT    | `/api/persons/:id` | Update a contact's number      |
+| DELETE | `/api/persons/:id` | Delete a contact               |
+| GET    | `/info`            | Shows number of entries + time |
+
+## Notes
+
+- Backend serves static files from `dist` if the frontend is built into that folder.
+- The API model is defined in `backend/modules/person.js` and uses Mongoose.
+- `npm run deploy:full` runs `build:ui`, stages files, commits with message `uibuild`, and pushes to the current repo branch.
