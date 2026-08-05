@@ -6,17 +6,23 @@ mongoose.set("strictQuery", false);
 
 mongoose
   .connect(url, { family: 4 })
-  .then(async (res) => {
-    console.log("connected to : " + url);
+  .then( (res) => {
+    console.log("connected to DB " );
     
   }).catch((error) => {
     console.log("error connecting to database:", error.message);
   });
-  console.log("connecting... to" + url);
+  console.log("connecting... to DB" );
   
 const phoneSchema = new mongoose.Schema({
-  name: String,
-  number: String,
+  name:{ type :String ,
+    minLength : 3,
+    required: true
+  },
+  number: {type: String ,
+    minlength : 10,
+    required : true
+  },
 });
 phoneSchema.set('toJSON', {
     transform: (document, returnedObject) => {
